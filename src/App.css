@@ -1,189 +1,227 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 6px; /* Slightly smoother corners */
-  color: var(--text-h); /* Darker text for better contrast on white */
-  background: #ffffff; /* Switched from blue/accent-bg to clean white */
-  border: 1px solid var(--border); /* Professional thin border */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle depth */
-  transition: all 0.3s ease;
-  margin-bottom: 24px;
-  cursor: pointer;
 
-  &:hover {
-    border-color: var(--accent); /* Highlights on hover */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+/* ========================================
+   9-IN-1 ELECTRIC CLEANING BRUSH
+   GLOBAL LANDING PAGE ENHANCEMENTS
+======================================== */
+
+:root {
+  --brand-navy: #101a35;
+  --brand-navy-dark: #0b142b;
+  --brand-gold: #d5a51e;
+  --brand-blue: #0284c7;
+  --brand-green: #15803d;
+  --page-background: #fffcf4;
+
+  /* Fixed top countdown bar */
+  --sticky-top-offset: 110px;
+
+  /* Fixed mobile purchase bar */
+  --sticky-bottom-offset: 96px;
 }
 
-.hero {
-  position: relative;
+/* ========================================
+   GLOBAL DOCUMENT
+======================================== */
 
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--sticky-top-offset);
 }
 
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+body {
+  min-width: 320px;
+  margin: 0;
 }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: #ffffff; /* Ensuring link buttons are also white/professional */
-    border: 1px solid var(--border);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: all 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-      border-color: var(--accent);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
+#root {
   width: 100%;
+  min-height: 100vh;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ========================================
+   MEDIA
+======================================== */
+
+img,
+video {
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+video {
+  display: block;
+}
+
+/* ========================================
+   INTERACTIVE ELEMENTS
+======================================== */
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--brand-gold);
+  outline-offset: 3px;
+}
+
+/* ========================================
+   SCROLL TARGETS
+======================================== */
+
+#main-content,
+#order-form,
+#customer-reviews,
+#product-benefits,
+#product-gallery,
+#product-demonstration {
+  scroll-margin-top: var(--sticky-top-offset);
+}
+
+/* ========================================
+   CHECKOUT FORM
+======================================== */
+
+#order-form input,
+#order-form textarea,
+#order-form select {
+  font: inherit;
+  color: var(--brand-navy);
+}
+
+#order-form input::placeholder,
+#order-form textarea::placeholder {
+  color: #94a3b8;
+}
+
+#order-form input:focus,
+#order-form textarea:focus,
+#order-form select:focus {
+  background-color: #ffffff;
+}
+
+/* ========================================
+   PRODUCT MEDIA
+======================================== */
+
+#product-gallery img,
+#product-demonstration img {
+  max-width: 100%;
+}
+
+#product-demonstration video {
+  width: 100%;
+}
+
+/* ========================================
+   CUSTOMER REVIEWS
+======================================== */
+
+#customer-reviews article {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+@media (hover: hover) {
+  #customer-reviews article:hover {
+    border-color: #cbd5e1;
+  }
+}
+
+/* Horizontal review scrolling */
+#customer-reviews [aria-label="Customer review and product photo gallery"] {
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   TEXT HANDLING
+======================================== */
+
+h1,
+h2,
+h3,
+h4,
+p {
+  overflow-wrap: break-word;
+}
+
+/* ========================================
+   MOBILE RESPONSIVENESS
+======================================== */
+
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
+  #order-form {
+    scroll-margin-bottom: var(--sticky-bottom-offset);
   }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --sticky-top-offset: 104px;
+    --sticky-bottom-offset: 100px;
+  }
+
+  /* Prevent iOS auto-zoom on form focus */
+  #order-form input,
+  #order-form textarea,
+  #order-form select {
+    font-size: 16px;
+  }
+
+  /* Improve horizontal gallery swiping */
+  #customer-reviews [aria-label="Customer review and product photo gallery"] {
+    scroll-snap-type: x mandatory;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

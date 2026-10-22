@@ -1,31 +1,88 @@
+
 @import "tailwindcss";
 
+/* ==========================================
+   9-IN-1 ELECTRIC CLEANING BRUSH
+   GLOBAL THEME — TAILWIND CSS V4
+========================================== */
+
 @theme {
-  --color-brand-primary: #2563eb; /* Keep this for buttons/links */
-  --color-brand-accent: #f59e0b;
-  --font-heading: 'Outfit', sans-serif;
+  /* BRAND COLORS */
+  --color-brand-primary: #101a35;
+  --color-brand-accent: #d5a51e;
+  --color-brand-blue: #0284c7;
+  --color-brand-success: #15803d;
+  --color-brand-cream: #fffcf4;
+
+  /* TYPOGRAPHY */
+  --font-heading: "Outfit", sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  /* CUSTOM DESIGN TOKENS */
   --spacing-128: 32rem;
   --radius-super: 2rem;
 }
 
+/* ==========================================
+   DOCUMENT FOUNDATION
+========================================== */
+
 html {
-  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  /* Change this from var(--color-brand-primary) to white or a soft slate */
-  background-color: #ffffff; 
-  color: #0f172a; /* Use a dark slate for text instead of pure black for better readability */
   margin: 0;
   padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background-color: #ffffff;
+  color: #0f172a;
+
+  font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Optional: Add a subtle loading fade-in so the page doesn't 'jump' on load */
-body {
-  animation: fadeIn 0.5s ease-in-out;
+/* ==========================================
+   ROOT APPLICATION
+========================================== */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* ==========================================
+   TYPOGRAPHY
+========================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+/* ==========================================
+   TEXT SELECTION
+========================================== */
+
+::selection {
+  background-color: #fef3c7;
+  color: #101a35;
+}
+
+/* ==========================================
+   ACCESSIBILITY
+========================================== */
+
+:focus-visible {
+  outline: 3px solid #d5a51e;
+  outline-offset: 3px;
 }

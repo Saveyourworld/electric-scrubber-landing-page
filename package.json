@@ -1,8 +1,10 @@
+
 {
-  "name": "fan-page",
+  "name": "electric-cleaning-brush-landing-page",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Responsive sales landing page for the 9-in-1 Electric Cleaning Brush with product demonstrations, customer reviews, EmailJS order notifications, WhatsApp ordering, and pay on delivery.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -41,9 +43,14 @@
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.10"
   },
-  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
-  "main": "eslint.config.js",
-  "keywords": [],
+  "keywords": [
+    "electric-cleaning-brush",
+    "landing-page",
+    "react",
+    "typescript",
+    "tailwindcss",
+    "ecommerce"
+  ],
   "author": "",
   "license": "ISC"
 }

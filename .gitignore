@@ -1,5 +1,18 @@
+
+# ==========================================
+# 9-IN-1 ELECTRIC CLEANING BRUSH
+# React + TypeScript + Vite
+# ==========================================
+
+# Dependencies
+node_modules/
+
+# Production builds
+dist/
+dist-ssr/
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,24 +20,26 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Environment files
+.env
+.env.*
+!.env.example
 *.local
 
-# Editor directories and files
+# Editor directories
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
+
+# Operating system files
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
 
-# local env files
-.env
-*.local
-.env.local
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
 
+# TypeScript incremental build files
+*.tsbuildinfo
