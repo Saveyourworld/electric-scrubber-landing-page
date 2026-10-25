@@ -1,10 +1,22 @@
-import { useRef, useState } from "react";
-import type { FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent, TransitionEvent } from "react";
 import emailjs from "@emailjs/browser";
+import ThankYouPage from "./ThankYouPage";
 
 const PRODUCT_NAME = "9-in-1 Electric Cleaning Brush";
-const UNIT_PRICE = 43000;
-const ORIGINAL_PRICE = 65000;
+const PACKAGES = {
+  regular: { label: "REGULAR", quantity: 1, price: 43000, original: 70000, gifts: "Free cleaning gloves" },
+  silver: { label: "SILVER", quantity: 2, price: 84000, original: 140000, gifts: "Free cleaning gloves + washing brush" },
+  gold: { label: "GOLD", quantity: 3, price: 127000, original: 210000, gifts: "Free cleaning gloves + washing brush + cotton towel" },
+} as const;
+type PackageId = keyof typeof PACKAGES;
+function getInitialPackage(): PackageId {
+  if (typeof window === "undefined") return "regular";
+  const q = new URLSearchParams(window.location.search).get("package");
+  if (q && q in PACKAGES) return q as PackageId;
+  try { const saved = JSON.parse(sessionStorage.getItem("scrubber-selected-package") || "null"); if (saved?.packageId in PACKAGES) return saved.packageId; } catch { /* no saved selection */ }
+  return "regular";
+}
 const WHATSAPP_NUMBER = "2349064543927";
 
 const NIGERIAN_STATES = [
@@ -43,12 +55,12 @@ function TrustCard({
   description: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-2xl">
+    <div className="flex gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-2xl">
         {icon}
       </div>
       <div>
-        <h4 className="font-bold text-[#101A35]">{title}</h4>
+        <h4 className="font-bold text-black">{title}</h4>
         <p className="mt-1 text-sm leading-6 text-slate-600">
           {description}
         </p>
@@ -57,10 +69,137 @@ function TrustCard({
   );
 }
 
+
+const GALLERY: Record<PackageId, {src:string;label:string}[]> = {
+ regular:[{src:"/free-gifts/scrubber.jpeg",label:"1 Electric Spin Scrubber"},{src:"/free-gifts/gloves.jpeg",label:"FREE Cleaning Gloves"}],
+ silver:[{src:"/free-gifts/scrubber.jpeg",label:"2 Electric Spin Scrubbers"},{src:"/free-gifts/gloves.jpeg",label:"FREE Cleaning Gloves"},{src:"/free-gifts/washer.jpeg",label:"FREE Washing Brush"}],
+ gold:[{src:"/free-gifts/scrubber.jpeg",label:"3 Electric Spin Scrubbers"},{src:"/free-gifts/gloves.jpeg",label:"FREE Cleaning Gloves"},{src:"/free-gifts/washer.jpeg",label:"FREE Washing Brush"},{src:"/free-gifts/towel.webp",label:"FREE Cotton Towel"}],
+};
+// Every image occupies the SAME fixed-size slide. The track moves horizontally;
+// no slide changes the height of the gallery or the checkout form.
+function PackageSlides({ photos, pauseAuto }: { photos: { src: string; label: string }[]; pauseAuto: boolean }) {
+  const [slide, setSlide] = useState(0);
+  const [animated, setAnimated] = useState(true);
+  const [pausedByHover, setPausedByHover] = useState(false);
+  const count = photos.length;
+  const visible = slide === count ? 0 : slide;
+
+  useEffect(() => {
+    // Stop automatic movement permanently for this checkout interaction
+    // as soon as the customer begins using the form.
+    if (pauseAuto || pausedByHover || count < 2) return;
+    const id = window.setInterval(() => {
+      setAnimated(true);
+      setSlide((previous) => previous + 1);
+    }, 4000);
+    return () => window.clearInterval(id);
+  }, [pauseAuto, pausedByHover, count]);
+
+  const onSlideComplete = (event: TransitionEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget || event.propertyName !== 'transform') return;
+    if (slide === count) {
+      setAnimated(false);
+      setSlide(0);
+    }
+  };
+
+  return (
+    <div
+      className="mt-4 min-w-0 overflow-hidden [overflow-anchor:none]"
+      onMouseEnter={() => setPausedByHover(true)}
+      onMouseLeave={() => setPausedByHover(false)}
+      onFocusCapture={() => setPausedByHover(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPausedByHover(false); }}
+    >
+      <div
+        className="relative h-64 w-full min-w-0 overflow-hidden rounded-xl bg-white sm:h-72 lg:h-72 [contain:layout_paint]"
+        aria-label="Package product and gift images"
+      >
+        <div
+          className="absolute inset-0 flex"
+          style={{
+            transform: `translate3d(-${slide * 100}%, 0, 0)`,
+            transition: animated ? 'transform 700ms ease-in-out' : 'none',
+            willChange: 'transform',
+          }}
+          onTransitionEnd={onSlideComplete}
+        >
+          {[...photos, photos[0]].map((photo, i) => (
+            <div key={`${photo.src}-${i}`} className="relative h-full w-full min-w-0 shrink-0 grow-0 basis-full overflow-hidden">
+              <img
+                src={photo.src}
+                alt={i === visible ? photo.label : ''}
+                aria-hidden={i !== visible}
+                width={440}
+                height={330}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                className="absolute inset-0 block h-full w-full object-contain object-center p-3"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-2 flex h-14 items-center justify-center overflow-hidden px-2 text-center text-base font-extrabold leading-tight text-black sm:text-lg" aria-live="off">
+        {photos[visible].label}
+      </div>
+      <div className="mt-3 grid grid-cols-4 gap-2 sm:gap-3">
+        {Array.from({ length: 4 }, (_, i) => {
+          const photo = photos[i];
+          return photo ? (
+            <button
+              key={photo.src}
+              type="button"
+              aria-label={`View ${photo.label}`}
+              aria-pressed={i === visible}
+              onClick={() => { setAnimated(true); setSlide(i); }}
+              className={`flex h-16 min-w-0 items-center justify-center overflow-hidden rounded-lg border-2 p-1 sm:h-20 ${i === visible ? 'border-green-600' : 'border-slate-200'}`}
+            >
+              <img src={photo.src} alt="" width={80} height={80} className="block h-full w-full object-contain" />
+            </button>
+          ) : <div key={`empty-${i}`} className="h-16 sm:h-20" aria-hidden="true" />;
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PackageGallery({ packageId, pauseAuto }: { packageId: PackageId; pauseAuto: boolean }) {
+  const selected = PACKAGES[packageId];
+  return (
+    <div className="mt-7 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm [overflow-anchor:none]">
+      <h3 className="flex h-14 items-center justify-center overflow-hidden text-center text-lg font-black leading-tight text-slate-950 sm:text-xl">
+        YOUR {selected.label} PACKAGE + FREE GIFTS
+      </h3>
+      <PackageSlides key={packageId} photos={GALLERY[packageId]} pauseAuto={pauseAuto} />
+      <p className="mt-3 flex h-12 items-center justify-center overflow-hidden text-center text-sm font-semibold leading-tight text-green-800">
+        {selected.quantity} scrubber{selected.quantity > 1 ? "s" : ""} + {selected.gifts}
+      </p>
+      <p className="mt-2 h-9 text-center text-xs text-slate-500">
+        Photos slide automatically. Tap a thumbnail to view a specific item.
+      </p>
+    </div>
+  );
+}
+
+function ClosingReviews(){
+ const reviews=[
+  {name:'Femi Alabi',location:'Lagos',image:'shegun-review.jpg',quote:'Delivery was fast and smooth right to my doorstep in Ikeja. Got my package with the free gift included. Tested it immediately on my bathroom grout and I am thoroughly impressed.'},
+  {name:'Blessing Etim',location:'Uyo',image:'chioma-review.jpg',quote:"he speed settings are fantastic. You don’t need to apply heavy physical pressure; just guide the scrubber and watch it lift years of soap scum away instantly"},
+  {name:'Chinyere Eze',location:'Onitsha',image:'patricia-review.jpg',quote:"Even my husband has started helping out with chores on weekends because 'operating the machine' is fun to him! It completely changed our cleaning routine"},
+  {name:'Ahmed Ibrahim',location:'Kaduna',image:'musa-review.jpg',quote:'Solid build quality. It doesnt slow down or stall when you press it against stubborn stains. Worth every single Naira spent.'},
+ ];
+ return <div className="bg-[#ebebeb] px-4 py-16"><div className="mx-auto max-w-6xl"><h2 className="text-center text-4xl font-black text-[#10b9f5] sm:text-6xl">SEE OUR HAPPY CUSTOMERS REVIEWS</h2><div className="mt-10 grid gap-7 md:grid-cols-2">{reviews.map(r=><article key={r.name} className="overflow-hidden rounded-3xl bg-white shadow-lg"><div className="p-6"><div className="flex items-center gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-xl font-black text-white">{r.name[0]}</span><div><h3 className="text-lg font-black">{r.name}</h3><p className="text-sm text-slate-500">{r.location}</p></div></div><p className="mt-3 text-amber-500" aria-label="Customer review">★★★★★</p><p className="mt-4 text-lg leading-relaxed text-slate-800">“{r.quote}”</p></div><img src={'/final-review-images/'+r.image} alt="Electric Spin Scrubber customer product photo" className="h-64 w-full object-contain" loading="lazy"/></article>)}</div></div></div>;
+}
+function WarningBeforeForm(){return <div className="bg-white px-4 py-14 text-center text-black"><div className="mx-auto max-w-5xl"><h2 className="text-[clamp(3.3rem,9vw,7rem)] font-black leading-none text-red-600">PLEASE NOTE!!!</h2><p className="mx-auto mt-10 max-w-4xl text-xl font-extrabold leading-relaxed sm:text-3xl">Please be sure you are FULLY ready for the product and have the money to pay at the point of delivery because we have limited stock.</p><p className="mt-6 text-xl font-bold text-zinc-700 sm:text-3xl">ORDER Before 11:59pm &amp; <u>Get Free Gift + Free Shipping</u></p><h2 className="mt-14 text-[clamp(2.8rem,7vw,5rem)] font-black leading-tight text-red-600">PLACE YOUR ORDER BELOW...</h2><p className="mx-auto mt-9 max-w-4xl text-xl font-black leading-relaxed text-red-600 sm:text-3xl">Due to high demand from our advert, we are running low on this product. Please place your order while supplies last!</p></div></div>}
+function AfterCheckout(){return <><div className="bg-[#ebebeb] px-4 py-14 text-black"><div className="mx-auto max-w-4xl space-y-7 text-xl font-semibold leading-relaxed sm:text-2xl"><p>But here’s the reality. Most people will read this. Nod. Think, “That makes sense.” And then do nothing. They’ll say, “I’ll get it later.”</p><p>And later turns into another sore Saturday. Another rushed panic before visitors. Another reminder from their lower back.</p><p>If you’re still reading... You’re not most people. You see the logic.</p><p>If power replaces pressure... Cleaning takes less physical effort. If cleaning feels easier... You get more energy for what matters.</p><p>That’s the chain. That’s why this exists. And that’s why you’re here.</p><p>Clean smarter. Protect your back. Reclaim your weekends. And finally make cleaning feel easier.</p><p>Click the button. Secure your 9-in-1 Electric Spin Scrubber now.</p><p>Upgrade the tool. Upgrade the outcome. Let the motor do what your body shouldn’t have to.</p></div><div className="mx-auto mt-10 max-w-4xl"><a href="#order-form" className="block rounded-xl bg-[#05c914] px-5 py-5 text-center text-xl font-black text-white sm:text-3xl">Click Here To Order Now</a><p className="mt-5 text-center text-lg font-bold">ORDER Before 11:59pm &amp; <u>Get Free Gift + Free Shipping</u></p></div></div><div className="bg-black px-4 py-14 text-center text-white"><div className="mx-auto max-w-4xl"><h2 className="text-5xl font-black text-red-600 sm:text-7xl">Need Help?</h2><p className="mt-8 text-xl font-black sm:text-2xl">CHAT WITH OUR CUSTOMER CARE TEAM</p><a className="mt-7 block rounded-xl bg-[#18e92e] px-5 py-5 text-xl font-black text-black sm:text-3xl" href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello, I need help ordering the 9-in-1 Electric Spin Scrubber.')}`} target="_blank" rel="noopener noreferrer">Chat Us On WhatsApp</a><p className="mt-8 text-lg font-bold">Delivery estimates and order confirmation will be communicated by our customer care team.</p><a className="mt-9 block rounded-xl bg-[#05c914] px-5 py-5 text-xl font-black text-white sm:text-2xl" href="#order-form">Click Here To Order Now</a><p className="mt-6 text-lg font-bold">FREE DELIVERY + FREE GIFTS WITH YOUR SELECTED PACKAGE</p></div></div></>}
+
 export default function OrderForm() {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [quantity, setQuantity] = useState(1);
+  const [packageId, setPackageId] = useState<PackageId>(getInitialPackage);
+  const selectedPackage = PACKAGES[packageId];
+  const quantity = selectedPackage.quantity;
   const [country, setCountry] = useState("Nigeria");
   const [state, setState] = useState("");
   const [otherCountry, setOtherCountry] = useState("");
@@ -70,9 +209,11 @@ export default function OrderForm() {
     useState<CheckoutStatus>("idle");
   const [whatsappURL, setWhatsappURL] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
+  // Freeze automatic gallery motion as soon as checkout begins.
+  const [checkoutStarted, setCheckoutStarted] = useState(false);
 
-  const productTotal = UNIT_PRICE * quantity;
-  const originalTotal = ORIGINAL_PRICE * quantity;
+  const productTotal = selectedPackage.price;
+  const originalTotal = selectedPackage.original;
   const totalSaved = originalTotal - productTotal;
   const deliveryFee = 0;
   const grandTotal = productTotal + deliveryFee;
@@ -83,8 +224,24 @@ export default function OrderForm() {
   const selectedRegion =
     country === "Nigeria" ? state : region.trim();
 
-  const changeQuantity = (amount: number) => {
-    setQuantity((current) => Math.max(1, current + amount));
+  // The package cards in FinalSalesSection dispatch this event and set the URL.
+  // This also supports browser back/forward navigation.
+  useEffect(() => {
+    const update = (event?: Event) => {
+      const detail = (event as CustomEvent<{packageId?: string}> | undefined)?.detail;
+      const fromUrl = new URLSearchParams(window.location.search).get("package");
+      const next = detail?.packageId || fromUrl;
+      if (next && next in PACKAGES) setPackageId(next as PackageId);
+    };
+    window.addEventListener("scrubber:package-selected", update);
+    window.addEventListener("popstate", update);
+    update();
+    return () => { window.removeEventListener("scrubber:package-selected", update); window.removeEventListener("popstate", update); };
+  }, []);
+
+  const choosePackage = (next: PackageId) => {
+    setPackageId(next);
+    try { sessionStorage.setItem("scrubber-selected-package", JSON.stringify({packageId: next, quantity: PACKAGES[next].quantity, price: PACKAGES[next].price})); } catch { /* storage optional */ }
   };
 
   const handleSubmit = async (
@@ -100,36 +257,54 @@ export default function OrderForm() {
 
     const formData = new FormData(form);
 
-    const name = String(formData.get("customer_name") || "").trim();
-    const phone = String(formData.get("customer_phone") || "").trim();
-    const email = String(formData.get("customer_email") || "").trim();
     const address = String(formData.get("customer_address") || "").trim();
 
+    // Capture every customer-entered field, including fields added in future.
+    // Exclude generated/hidden fields because they appear in the breakdown below.
+    const fieldLabels: Record<string, string> = {
+      customer_name: "Full name", customer_phone: "Phone / WhatsApp",
+      customer_email: "Email", delivery_country: "Country",
+      other_country: "Other country", customer_state: "State",
+      customer_region: "Region", customer_address: "Full delivery address",
+    };
+    const extraDetails = Array.from(form.elements)
+      .filter((element): element is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement =>
+        element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)
+      .filter((element) => element.name && element.type !== "hidden" && element.type !== "submit" && !element.disabled)
+      .filter((element) => !(element instanceof HTMLInputElement && (element.type === "checkbox" || element.type === "radio") && !element.checked))
+      .map((element) => {
+        const value = String(formData.get(element.name) || "").trim();
+        const label = fieldLabels[element.name] || element.name.replace(/_/g, " ");
+        return value ? `${label}: ${value}` : null;
+      })
+      .filter((value): value is string => Boolean(value));
+
     const message = [
-      "🛒 *NEW PRODUCT ORDER*",
+      "🛒 *NEW PRODUCT ORDER — PLEASE CONFIRM*",
       "",
       `📦 Product: ${PRODUCT_NAME}`,
+      `🎟️ Package: ${selectedPackage.label}`,
       `🔢 Quantity: ${quantity}`,
       "",
-      "*CUSTOMER DETAILS*",
-      `👤 Name: ${name}`,
-      `📞 Phone: ${phone}`,
-      `📧 Email: ${email || "Not provided"}`,
+      "*ALL DETAILS ENTERED IN THE FORM*",
+      ...extraDetails,
       "",
-      "*DELIVERY DETAILS*",
+      "*CONFIRMED DELIVERY DESTINATION*",
       `🌍 Country: ${selectedCountry}`,
       `📍 State/Region: ${selectedRegion}`,
       `🏠 Address: ${address}`,
       "",
       "*ORDER BREAKDOWN*",
-      `💵 Unit Price: ${formatNaira(UNIT_PRICE)}`,
+      `💵 Original Total: ${formatNaira(originalTotal)}`,
+      `🏷️ Package Offer: ${formatNaira(productTotal)}`,
+      `💚 You Save: ${formatNaira(totalSaved)}`,
       `📦 Product Total: ${formatNaira(productTotal)}`,
       `🚚 Delivery: FREE`,
       `💰 TOTAL: ${formatNaira(grandTotal)}`,
       "",
-      "🎁 Free Cleaning Gloves Included",
+      `🎁 Gifts: ${selectedPackage.gifts}`,
       "💳 Payment on Delivery",
-      "🛡️ Money-Back Guarantee",
+      
       "",
       "Please confirm my order and delivery details.",
     ].join("\n");
@@ -171,51 +346,27 @@ export default function OrderForm() {
   };
 
   return (
+    <>
+      <ClosingReviews />
+      <WarningBeforeForm />
     <section
       id="order-form"
-      className="scroll-mt-28 bg-[#F8FAFC] px-4 py-12 sm:py-16 lg:py-20"
+      className="scroll-mt-28 bg-[#f0f0f0] px-4 py-12 sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-6xl">
-        {/* Section heading */}
-        <div className="mx-auto mb-12 max-w-3xl text-center">
-          <p className="mb-3 text-sm font-black uppercase tracking-[0.18em] text-sky-700">
-            Secure Your Order
-          </p>
-
-          <h2 className="text-3xl font-black leading-tight text-[#101A35] sm:text-4xl lg:text-5xl">
-            Get Yours Today.
-            <span className="block text-sky-700">
-              Pay When It Arrives.
-            </span>
-          </h2>
-
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            No upfront payment required. Fill in your delivery details,
-            review your order, and complete your request through WhatsApp.
-          </p>
+        <div className="mx-auto mb-10 max-w-4xl text-center">
+          <p className="mb-3 text-lg font-black uppercase tracking-wide text-red-600">YOUR CLEANING UPGRADE STARTS HERE</p>
+          <h2 className="text-[clamp(2.3rem,6vw,5rem)] font-black leading-[1.07] text-black">PLACE YOUR ORDER <span className="text-red-600">NOW!</span></h2>
+          <p className="mx-auto mt-5 max-w-3xl text-xl font-extrabold leading-relaxed text-zinc-800 sm:text-2xl">Choose your package. Enter your delivery details. <span className="text-green-700">Pay on Delivery — Free Shipping.</span></p>
+          <p className="mt-4 text-lg font-bold text-zinc-700">Select REGULAR, SILVER or GOLD below. Your selected package and total will update automatically.</p>
         </div>
 
-        {/* Checkout progress */}
-        <div className="mx-auto mb-10 flex max-w-2xl items-center justify-center gap-2 text-xs font-semibold sm:gap-4 sm:text-sm">
-          <span className="rounded-full bg-[#101A35] px-3 py-2 text-white">
-            1. Your Details
-          </span>
-          <span className="h-px w-5 bg-slate-300 sm:w-12" />
-          <span className="rounded-full bg-sky-100 px-3 py-2 text-sky-800">
-            2. Review
-          </span>
-          <span className="h-px w-5 bg-slate-300 sm:w-12" />
-          <span className="rounded-full bg-sky-100 px-3 py-2 text-sky-800">
-            3. WhatsApp
-          </span>
-        </div>
-
-        <div className="grid items-start gap-8 lg:grid-cols-[1fr_1.12fr] lg:gap-12">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.12fr)] lg:gap-12">
           {/* LEFT: Product and guarantees */}
           <div className="space-y-6">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="bg-[#101A35] p-6 text-white">
-                <p className="text-xs font-bold uppercase tracking-widest text-sky-200">
+            <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+              <div className="bg-black p-6 text-white">
+                <p className="text-xs font-bold uppercase tracking-widest text-green-200">
                   Your Selected Product
                 </p>
 
@@ -230,23 +381,23 @@ export default function OrderForm() {
 
               <div className="p-6">
                 <div className="flex flex-wrap items-end gap-3">
-                  <span className="text-3xl font-black text-[#101A35]">
-                    {formatNaira(UNIT_PRICE)}
+                  <span className="text-3xl font-black text-black">
+                    {formatNaira(productTotal)}
                   </span>
                   <span className="pb-1 text-base text-slate-400 line-through">
-                    {formatNaira(ORIGINAL_PRICE)}
+                    {formatNaira(originalTotal)}
                   </span>
                 </div>
 
                 <p className="mt-2 text-sm font-bold text-emerald-700">
-                  Save {formatNaira(ORIGINAL_PRICE - UNIT_PRICE)} per unit
+                  Save {formatNaira(totalSaved)} with the {selectedPackage.label} package
                 </p>
 
                 <div className="mt-6 space-y-3">
                   {[
                     "9-in-1 electric cleaning brush",
                     "Interchangeable cleaning attachments",
-                    "Free cleaning gloves",
+                    "Free gifts according to your selected package",
                     "Free delivery",
                   ].map((item) => (
                     <div key={item} className="flex items-center gap-3">
@@ -258,39 +409,15 @@ export default function OrderForm() {
                   ))}
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-center text-sm font-black text-amber-950">
-                    🎁 YOUR ORDER INCLUDES FREE CLEANING GLOVES
-                  </p>
-                  <div className="mt-4 flex items-center justify-center gap-2 sm:gap-4">
-                    <div className="min-w-0 flex-1 rounded-xl bg-white p-2 text-center shadow-sm">
-                      <img
-                        src="/7 in 1 .jpeg"
-                        alt="9-in-1 electric cleaning brush"
-                        loading="lazy"
-                        className="aspect-square w-full object-contain"
-                      />
-                      <p className="mt-2 text-xs font-bold text-[#101A35]">Cleaning Brush</p>
-                    </div>
-                    <span className="shrink-0 text-3xl font-black text-amber-700" aria-hidden="true">+</span>
-                    <div className="min-w-0 flex-1 rounded-xl bg-white p-2 text-center shadow-sm">
-                      <img
-                        src="/gloves.jpeg"
-                        alt="Free cleaning gloves included with your order"
-                        loading="lazy"
-                        className="aspect-square w-full object-contain"
-                      />
-                      <p className="mt-2 text-xs font-bold text-[#101A35]">FREE Gloves</p>
-                    </div>
-                  </div>
-                </div>
+                <PackageGallery packageId={packageId} pauseAuto={checkoutStarted} />
+                <p className="mt-3 text-center text-sm font-bold text-green-800">{selectedPackage.quantity} scrubber{selectedPackage.quantity > 1 ? "s" : ""} + {selectedPackage.gifts} included in your {selectedPackage.label} package.</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <TrustCard
                 icon="💳"
-                title="Pay on Delivery — Worldwide"
+                title="Pay on Delivery"
                 description="No upfront payment. Your payment is collected when your order is delivered."
               />
 
@@ -302,8 +429,8 @@ export default function OrderForm() {
 
               <TrustCard
                 icon="🛡️"
-                title="100% Money-Back Guarantee"
-                description="Your purchase is backed by our money-back guarantee, subject to our return and refund terms."
+                title="Customer Support"
+                description="Contact our team if you have questions about your order or our return terms."
               />
 
               <TrustCard
@@ -313,14 +440,14 @@ export default function OrderForm() {
               />
             </div>
 
-            <div className="rounded-2xl border border-sky-100 bg-sky-50 p-5">
-              <p className="font-bold text-[#101A35]">
+            <div className="rounded-2xl border border-sky-100 bg-green-50 p-5">
+              <p className="font-bold text-black">
                 How your order works
               </p>
 
               <ol className="mt-3 list-inside list-decimal space-y-2 text-sm leading-6 text-slate-700">
                 <li>Enter your contact and delivery information.</li>
-                <li>Choose the number of brushes you want.</li>
+                <li>Select Regular, Silver or Gold.</li>
                 <li>Review your total and submit your details.</li>
                 <li>Send the prepared order message on WhatsApp.</li>
                 <li>Our team confirms delivery arrangements with you.</li>
@@ -329,10 +456,10 @@ export default function OrderForm() {
           </div>
 
           {/* RIGHT: Checkout form */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl sm:p-8">
-            <form ref={formRef} onSubmit={handleSubmit}>
+          <div className="min-w-0 self-start rounded-3xl border border-zinc-200 bg-white p-5 shadow-xl [overflow-anchor:none] sm:p-8">
+            <form ref={formRef} onSubmit={handleSubmit} onFocusCapture={() => setCheckoutStarted(true)} onPointerDownCapture={() => setCheckoutStarted(true)}>
               <div className="mb-7">
-                <h3 className="text-2xl font-black text-[#101A35]">
+                <h3 className="text-2xl font-black text-black">
                   Complete Your Order
                 </h3>
                 <p className="mt-2 text-sm text-slate-500">
@@ -342,7 +469,7 @@ export default function OrderForm() {
 
               {/* Contact information */}
               <div className="mb-8">
-                <h4 className="mb-4 border-b border-slate-100 pb-3 text-base font-black text-[#101A35]">
+                <h4 className="mb-4 border-b border-slate-100 pb-3 text-base font-black text-black">
                   01 — Contact Information
                 </h4>
 
@@ -404,7 +531,7 @@ export default function OrderForm() {
 
               {/* Delivery information */}
               <div className="mb-8">
-                <h4 className="mb-4 border-b border-slate-100 pb-3 text-base font-black text-[#101A35]">
+                <h4 className="mb-4 border-b border-slate-100 pb-3 text-base font-black text-black">
                   02 — Delivery Information
                 </h4>
 
@@ -531,53 +658,28 @@ export default function OrderForm() {
                 </div>
               </div>
 
-              {/* Quantity */}
+              {/* Package selection: exact bundle prices, not unit price × quantity */}
               <div className="mb-8">
-                <h4 className="mb-4 border-b border-slate-100 pb-3 text-base font-black text-[#101A35]">
-                  03 — Choose Quantity
-                </h4>
-
-                <div className="flex items-center justify-between rounded-2xl bg-sky-50 p-4">
-                  <div>
-                    <p className="font-bold text-[#101A35]">
-                      Electric Cleaning Brush
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {formatNaira(UNIT_PRICE)} each
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(-1)}
-                      disabled={quantity === 1}
-                      aria-label="Decrease quantity"
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl font-bold shadow-sm disabled:opacity-40"
-                    >
-                      −
-                    </button>
-
-                    <span
-                      aria-live="polite"
-                      className="w-6 text-center text-xl font-black text-[#101A35]"
-                    >
-                      {quantity}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(1)}
-                      aria-label="Increase quantity"
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl font-bold shadow-sm"
-                    >
-                      +
-                    </button>
-                  </div>
+                <h4 className="mb-4 border-b border-slate-100 pb-3 text-base font-black text-black">03 — Choose Your Package *</h4>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {(Object.keys(PACKAGES) as PackageId[]).map((id) => {
+                    const p = PACKAGES[id];
+                    return <button key={id} type="button" onClick={() => choosePackage(id)} aria-pressed={packageId === id}
+                      className={`rounded-2xl border-2 p-3 text-left transition ${packageId === id ? "border-green-600 bg-green-50 shadow-md" : "border-zinc-200 bg-white hover:border-green-300"}`}>
+                      <span className="block text-sm font-black text-black">{p.label}</span>
+                      <span className="mt-1 block text-xs text-slate-500">{p.quantity} {p.quantity === 1 ? "Scrubber" : "Scrubbers"}</span>
+                      <span className="mt-2 block text-xs text-slate-400 line-through">{formatNaira(p.original)}</span>
+                      <span className="block text-lg font-black text-green-700">{formatNaira(p.price)}</span>
+                    </button>;
+                  })}
                 </div>
+                <p className="mt-3 text-sm font-semibold text-emerald-800">🎁 {selectedPackage.gifts} · FREE DELIVERY · PAY ON DELIVERY</p>
               </div>
 
               {/* Hidden fields for EmailJS */}
+              <input type="hidden" name="selected_package" value={selectedPackage.label} />
+              <input type="hidden" name="package_gifts" value={selectedPackage.gifts} />
+              <input type="hidden" name="original_total" value={originalTotal.toLocaleString("en-NG")} />
               <input type="hidden" name="selected_country" value={selectedCountry} />
               <input type="hidden" name="selected_region" value={selectedRegion} />
               <input
@@ -623,21 +725,21 @@ export default function OrderForm() {
 
               {/* Final summary */}
               <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <h4 className="mb-5 text-lg font-black text-[#101A35]">
+                <h4 className="mb-5 text-lg font-black text-black">
                   04 — Review Your Order
                 </h4>
 
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between gap-4 text-slate-600">
-                    <span>Original price × {quantity}</span>
+                    <span>Original price — {selectedPackage.label}</span>
                     <span className="text-slate-400 line-through">
                       {formatNaira(originalTotal)}
                     </span>
                   </div>
 
                   <div className="flex justify-between gap-4 text-slate-600">
-                    <span>Offer price × {quantity}</span>
-                    <span className="font-bold text-[#101A35]">
+                    <span>Package offer — {selectedPackage.label}</span>
+                    <span className="font-bold text-black">
                       {formatNaira(productTotal)}
                     </span>
                   </div>
@@ -659,17 +761,17 @@ export default function OrderForm() {
                   <div className="flex justify-between gap-4">
                     <span className="text-slate-600">Free gift</span>
                     <span className="font-bold text-emerald-700">
-                      Cleaning Gloves
+                      {selectedPackage.gifts}
                     </span>
                   </div>
 
                   <div className="mt-4 border-t border-slate-200 pt-5">
                     <div className="flex items-end justify-between gap-3">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-sky-700">
+                        <p className="text-xs font-bold uppercase tracking-wider text-red-600">
                           Total to Pay on Delivery
                         </p>
-                        <p className="mt-1 text-3xl font-black text-[#101A35]">
+                        <p className="mt-1 text-3xl font-black text-black">
                           {formatNaira(grandTotal)}
                         </p>
                       </div>
@@ -736,64 +838,28 @@ export default function OrderForm() {
         <span aria-hidden="true">✆</span>
       </a>
 
-      {/* Confirmation modal */}
+      {/* Post-submission Thank You page — replaces the old confirmation popup */}
       {showConfirmation && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/80 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="checkout-confirmation-title"
-        >
-          <div className="my-auto w-full max-w-md rounded-3xl bg-white p-6 text-center shadow-2xl sm:p-8">
-            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl text-emerald-700">
-              ✓
-            </div>
-
-            <h3
-              id="checkout-confirmation-title"
-              className="text-2xl font-black text-[#101A35]"
-            >
-              Almost Done!
-            </h3>
-
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              Your order details are ready. Tap the button below
-              to open WhatsApp, then press <strong>Send</strong> to
-              complete your order request.
-            </p>
-
-            {checkoutStatus === "email-sent" && (
-              <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
-                Your details were sent by email. Please also send your WhatsApp message so we can confirm the order.
-              </p>
-            )}
-
-            {checkoutStatus === "email-failed" && (
-              <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm leading-6 text-amber-900">
-                Email notification could not be confirmed.
-                Please send your order through WhatsApp.
-              </p>
-            )}
-
-            <a
-              href={whatsappURL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 flex w-full items-center justify-center rounded-xl bg-green-600 px-5 py-4 font-black text-white transition hover:bg-green-700"
-            >
-              Continue to WhatsApp →
-            </a>
-
-            <button
-              type="button"
-              onClick={() => setShowConfirmation(false)}
-              className="mt-3 w-full rounded-xl px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100"
-            >
-              Return to Checkout
-            </button>
-          </div>
-        </div>
+        <ThankYouPage
+          emailStatus={checkoutStatus}
+          whatsappURL={whatsappURL}
+          packageName={selectedPackage.label}
+          quantity={quantity}
+          total={grandTotal}
+          gifts={selectedPackage.gifts}
+          onReturn={() => setShowConfirmation(false)}
+        />
       )}
     </section>
+    <section className="bg-white px-4 py-12 text-center" aria-label="Express delivery enquiries">
+      <div className="mx-auto max-w-4xl rounded-3xl border-4 border-green-500 bg-black px-5 py-9 text-white sm:px-10">
+        <h2 className="text-3xl font-black leading-tight sm:text-5xl">TRAVELLING SOON? OR CAN'T WASTE ANOTHER SECOND CLEANING THE WRONG WAY? NEED IT <span className="text-[#25e744]">EXPRESS?</span></h2>
+        <p className="mx-auto mt-5 max-w-2xl text-lg font-semibold leading-relaxed sm:text-2xl">Have an urgent trip or need your Electric Spin Scrubber delivered by a particular date? Speak directly with our customer care representative about express delivery.</p>
+        <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hello! I need EXPRESS delivery for the 9-in-1 Electric Spin Scrubber. I am travelling soon / need the order urgently. My preferred delivery date is: [PLEASE ENTER DATE]. My delivery city/state is: [PLEASE ENTER LOCATION]. Selected package: ${selectedPackage.label} (${formatNaira(selectedPackage.price)}). Please confirm availability, delivery timing, and the additional express delivery charge.`)}`} target="_blank" rel="noopener noreferrer" className="mt-7 block rounded-xl bg-[#06d525] px-4 py-5 text-lg font-black text-black shadow-lg transition hover:bg-[#24f144] sm:text-2xl">CHAT WITH A REPRESENTATIVE ON WHATSAPP — EXPRESS ORDER</a>
+        <p className="mt-5 text-base font-bold text-zinc-200">Express delivery is subject to availability. The representative will confirm the delivery date, delivery cost and any additional express fee before you proceed.</p>
+      </div>
+    </section>
+    <AfterCheckout />
+    </>
   );
 }

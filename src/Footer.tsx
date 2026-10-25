@@ -17,29 +17,21 @@ export default function Footer({
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-slate-800 bg-[#0B142B] text-slate-300">
-      {/* Final conversion strip */}
-      <div className="border-b border-white/10 bg-[#101A35]">
+    <footer className="border-t border-zinc-800 bg-black text-zinc-200">
+      {/* One final, consistent action — no duplicate checkout form */}
+      <div className="border-b border-white/15 bg-[#111111]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-5 py-10 text-center md:flex-row md:text-left">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#D5A51E]">
-              Make Cleaning Easier
-            </p>
-
-            <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">
-              Ready to Get Your 9-in-1 Brush?
+            <p className="text-sm font-black uppercase tracking-widest text-[#ff3b3b]">YOUR CLEANER HOME STARTS HERE</p>
+            <h2 className="mt-3 text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">
+              Ready To Make Cleaning Easier?
             </h2>
-
-            <p className="mt-2 text-sm leading-6 text-slate-300">
-              Free cleaning gloves. Delivery and payment terms confirmed with your order.
+            <p className="mt-3 max-w-xl text-base font-medium leading-7 text-zinc-300">
+              Choose your Regular, Silver or Gold package above. Pay on delivery and see your included gifts at checkout.
             </p>
           </div>
-
-          <a
-            href="#order-form"
-            className="inline-flex w-full shrink-0 items-center justify-center rounded-xl bg-[#D5A51E] px-7 py-4 text-base font-black text-[#101A35] shadow-lg transition hover:bg-[#E7BA36] sm:w-auto"
-          >
-            🛒 ORDER NOW — ₦43,000
+          <a href="#order-form" className="inline-flex w-full shrink-0 items-center justify-center rounded-xl bg-[#00d81b] px-8 py-5 text-center text-lg font-black text-black shadow-lg shadow-green-900/20 transition hover:bg-[#30ef47] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto">
+            CLICK HERE TO ORDER NOW
           </a>
         </div>
       </div>
@@ -54,36 +46,33 @@ export default function Footer({
               className="inline-flex items-center gap-3"
               aria-label="Back to top"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D5A51E] text-2xl">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#00d81b] text-2xl">
                 🧽
               </div>
 
               <div>
-                <p className="text-xl font-black tracking-tight text-white">
-                  9-in-1 Cleaning Brush
+                <p className="text-2xl font-black tracking-tight text-white">
+                  9-in-1 Electric Spin Scrubber™
                 </p>
-                <p className="text-xs font-semibold uppercase tracking-widest text-[#D5A51E]">
-                  Home Cleaning Essentials
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#ff4343]">
+                  CLEAN SMARTER. LIVE EASIER.
                 </p>
               </div>
             </a>
 
-            <p className="mt-5 max-w-md text-sm leading-7 text-slate-400">
-              Make everyday cleaning more convenient with our
-              versatile electric cleaning brush and interchangeable
-              attachments. Order with confidence and enjoy
-              customer-focused service.
+            <p className="mt-5 max-w-md text-sm leading-7 text-zinc-400">
+              Clean tiles, bathrooms, floors and tricky corners with less bending and less scrubbing. Explore the packages above and let our team help with your order.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
               {[
                 "✓ Pay on Delivery",
-                "✓ Free Delivery Where Available",
-                "✓ Refund Support",
+                "✓ Free Delivery on Eligible Orders",
+                "✓ WhatsApp Customer Support",
               ].map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-white/15 bg-white/5 px-3 py-2 text-xs font-bold text-slate-200"
+                  className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold text-zinc-200"
                 >
                   {item}
                 </span>
@@ -93,25 +82,25 @@ export default function Footer({
 
           {/* Quick links */}
           <div>
-            <h3 className="mb-5 text-sm font-black uppercase tracking-wider text-white">
+            <h3 className="mb-5 text-base font-black uppercase tracking-wide text-white">
               Quick Links
             </h3>
 
             <nav aria-label="Footer navigation" className="flex flex-col gap-4 text-sm">
-              <a href="#" className="transition hover:text-[#D5A51E]">
+              <a href="#" className="transition hover:text-[#ff4343]">
                 Back to Top
               </a>
 
               <a
                 href="#customer-reviews"
-                className="transition hover:text-[#D5A51E]"
+                className="transition hover:text-[#ff4343]"
               >
                 Customer Reviews
               </a>
 
               <a
                 href="#order-form"
-                className="transition hover:text-[#D5A51E]"
+                className="transition hover:text-[#ff4343]"
               >
                 Place an Order
               </a>
@@ -119,7 +108,7 @@ export default function Footer({
               <button
                 type="button"
                 onClick={() => setOpenModal("privacy")}
-                className="cursor-pointer text-left transition hover:text-[#D5A51E]"
+                className="cursor-pointer text-left transition hover:text-[#ff4343]"
               >
                 Privacy Policy
               </button>
@@ -127,7 +116,7 @@ export default function Footer({
               <button
                 type="button"
                 onClick={() => setOpenModal("terms")}
-                className="cursor-pointer text-left transition hover:text-[#D5A51E]"
+                className="cursor-pointer text-left transition hover:text-[#ff4343]"
               >
                 Terms & Delivery Policy
               </button>
@@ -136,29 +125,29 @@ export default function Footer({
 
           {/* Customer support */}
           <div>
-            <h3 className="mb-5 text-sm font-black uppercase tracking-wider text-white">
+            <h3 className="mb-5 text-base font-black uppercase tracking-wide text-white">
               Customer Support
             </h3>
 
-            <p className="text-sm leading-7 text-slate-400">
+            <p className="text-sm leading-7 text-zinc-400">
               Have questions about your order, delivery, or product?
               Contact our team on WhatsApp.
             </p>
 
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-                "Hello, I have a question about the 9-in-1 Electric Cleaning Brush."
+                "Hello, I have a question about the 9-in-1 Electric Spin Scrubber and its Regular, Silver and Gold packages."
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-700"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#00d81b] px-5 py-3 font-black text-black transition hover:bg-[#2ef044]"
             >
               <span aria-hidden="true">💬</span>
               Chat on WhatsApp
             </a>
 
-            <p className="mt-4 text-xs leading-6 text-slate-400">
-              For orders outside Nigeria, contact us to confirm availability and delivery charges before ordering.
+            <p className="mt-4 text-xs leading-6 text-zinc-400">
+              Travelling or need express delivery? Message us on WhatsApp to confirm the date, availability and any additional express charges.
             </p>
           </div>
         </div>
@@ -171,7 +160,7 @@ export default function Footer({
               <p className="text-sm font-bold text-white">
                 Pay on Delivery
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 Subject to delivery confirmation
               </p>
             </div>
@@ -183,7 +172,7 @@ export default function Footer({
               <p className="text-sm font-bold text-white">
                 Free Delivery
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 For eligible delivery locations
               </p>
             </div>
@@ -195,7 +184,7 @@ export default function Footer({
               <p className="text-sm font-bold text-white">
                 Returns & Refunds
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 Contact support for refund terms
               </p>
             </div>
@@ -203,9 +192,9 @@ export default function Footer({
         </div>
 
         {/* Legal notice */}
-        <div className="border-b border-white/10 py-8 text-xs leading-7 text-slate-400">
+        <div className="border-b border-white/10 py-8 text-xs leading-7 text-zinc-400">
           <p>
-            <strong className="text-slate-200">
+            <strong className="text-zinc-200">
               Product Information:
             </strong>{" "}
             Product appearance and included accessories are as
@@ -214,7 +203,7 @@ export default function Footer({
           </p>
 
           <p className="mt-3">
-            <strong className="text-slate-200">
+            <strong className="text-zinc-200">
               Payment and Delivery:
             </strong>{" "}
             Free delivery and payment on delivery apply to eligible
@@ -224,7 +213,7 @@ export default function Footer({
           </p>
 
           <p className="mt-3">
-            <strong className="text-slate-200">
+            <strong className="text-zinc-200">
               Facebook Disclaimer:
             </strong>{" "}
             This independent store is not affiliated with, sponsored by,
@@ -233,9 +222,9 @@ export default function Footer({
         </div>
 
         {/* Copyright */}
-        <div className="flex flex-col items-center justify-between gap-4 pt-7 text-center text-xs text-slate-500 sm:flex-row sm:text-left">
+        <div className="flex flex-col items-center justify-between gap-4 pt-7 text-center text-xs text-zinc-500 sm:flex-row sm:text-left">
           <p>
-            © {currentYear} 9-in-1 Electric Cleaning Brush Store.
+            © {currentYear} 9-in-1 Electric Spin Scrubber™ Store.
             All rights reserved.
           </p>
 
